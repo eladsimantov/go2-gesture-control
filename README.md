@@ -35,15 +35,13 @@ go2-gesture-control/
 
 | Gesture | Command |
 |---|---|
-| 👍 Thumbs up | Stand up |
-| 👎 Thumbs down | Sit down |
-| ✋ Open palm | Stop |
-| ✊ Fist | Walk forward |
-| ✌️ Peace / V sign | Walk backward |
-| 👈 Pointing left | Turn left |
-| 👉 Pointing right | Turn right |
-| 👋 Wave | Robot wave |
-
+| 👍 Thumbs up | Stand Up |
+| 👎 Thumbs down | Lie Down |
+| ✌️ Peace / V sign | Handstand |
+| ☝️ Pointing up | Rotate |
+| ✊ Fist | Sit |
+| ✋ Open palm | Say Hi |
+| 🤟 I Love You | I Love You |
 ---
 
 ## Installation
