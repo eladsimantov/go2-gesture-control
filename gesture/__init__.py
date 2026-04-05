@@ -3,6 +3,8 @@ Gesture recognition module for Go2 gesture control.
 
 This module provides hand gesture detection using MediaPipe and OpenCV.
 
+see example in https://github.com/google-ai-edge/mediapipe-samples/tree/main/examples/gesture_recognizer/raspberry_pi. 
+
 The :class:`Gesture` enum is always available.  :class:`GestureDetector`
 requires ``opencv-python`` and ``mediapipe`` to be installed; it is
 imported lazily so that the rest of the codebase can be loaded without

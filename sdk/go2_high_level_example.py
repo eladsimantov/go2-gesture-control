@@ -1,5 +1,6 @@
 """
 A high level example for the go2 robot adapted from https://github.com/unitreerobotics/unitree_sdk2_python 
+Make sure to install unitree_sdk2py from https://github.com/unitreerobotics/unitree_sdk2_python
 """
 
 import time
