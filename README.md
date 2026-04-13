@@ -100,3 +100,6 @@ Camera frame
          ▼
     Go2 Robot
 ```
+
+<img width="905" height="582" alt="image" src="https://github.com/user-attachments/assets/fc627fd4-72f6-42ba-93e0-e33e6a0555e7" />
+
