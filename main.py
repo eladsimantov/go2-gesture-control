@@ -27,7 +27,7 @@ import sys
 
 import cv2
 
-from gesture import GestureDetector
+from gesture import GestureDetector, Gesture
 from command_layer import CommandRouter
 from sdk import Go2Interface
 
@@ -77,6 +77,8 @@ def run(network_interface: str, camera_index: int) -> int:
             router = CommandRouter()
             logger.info("Starting gesture control loop – press 'q' to quit")
 
+            prev_gesture = Gesture.UNKNOWN
+
             while True:
                 ret, frame = cap.read()
                 if not ret:
@@ -84,6 +86,16 @@ def run(network_interface: str, camera_index: int) -> int:
                     continue
 
                 gesture, landmarks, confidences = detector.detect(frame)
+
+                if gesture != Gesture.UNKNOWN and gesture != prev_gesture:
+                    top_score = confidences[0][1] if confidences else 0.0
+                    print(f"recognised {gesture.name} with {top_score * 100:.2f}% confidence!")
+                    if confidences:
+                        conf_str = ", ".join([f"{cat}: {score * 100:.2f}%" for cat, score in confidences if cat != "None"])
+                        print(conf_str)
+                        
+                prev_gesture = gesture
+
                 command = router.route(gesture)
                 robot.send_command(command)
 

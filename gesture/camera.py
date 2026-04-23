@@ -103,7 +103,7 @@ if __name__ == "__main__":
     import sys
     # Add project root to sys.path so we can import from the package
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    from gesture.gesture_detector import GestureDetector
+    from gesture import GestureDetector, Gesture
     from gesture.visualize import draw_overlays
 
     # Configure basic logging for standalone execution
@@ -112,6 +112,8 @@ if __name__ == "__main__":
     print("Starting camera stream and gesture detector. Press 'q' to exit.")
     
     with CameraStream(source=0) as camera, GestureDetector() as detector:
+        prev_gesture = Gesture.UNKNOWN
+        
         while True:
             success, frame = camera.read_frame()
             if not success:
@@ -121,6 +123,15 @@ if __name__ == "__main__":
             # Detect gesture, landmarks, and confidences
             gesture, landmarks, confidences = detector.detect(frame)
             
+            if gesture != Gesture.UNKNOWN and gesture != prev_gesture:
+                top_score = confidences[0][1] if confidences else 0.0
+                print(f"recognised {gesture.name} with {top_score * 100:.2f}% confidence!")
+                if confidences:
+                    conf_str = ", ".join([f"{cat}: {score * 100:.2f}%" for cat, score in confidences if cat != "None"])
+                    print(conf_str)
+            
+            prev_gesture = gesture
+
             # Draw overlays for visual feedback
             frame = draw_overlays(frame, gesture, landmarks, confidences)
             
