@@ -1,13 +1,10 @@
-# Runtime dependencies
-# ---------------------------------------------------------------------------
-# Install with:
-#   pip install -r requirements.txt
-#
-# The Unitree SDK (unitree_sdk2py) must be installed separately from source:
-#   git clone https://github.com/unitreerobotics/unitree_sdk2_python
-#   cd unitree_sdk2_python && pip install -e .
-# ---------------------------------------------------------------------------
-
-opencv-python>=4.8.0
-mediapipe>=0.10.0
-numpy>=1.24.0
+click==8.3.2
+cyclonedds==0.10.2
+markdown-it-py==4.0.0
+mdurl==0.1.2
+numpy==2.4.4
+opencv-python==4.13.0.92
+Pygments==2.20.0
+rich==15.0.0
+rich-click==1.9.7
+-e git+https://github.com/unitreerobotics/unitree_sdk2_python.git@db9b2d210081387fcd1e7ed9ac4c56a02983bb85#egg=unitree_sdk2py
