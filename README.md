@@ -6,6 +6,18 @@ translates them into high-level motion commands that are sent to the robot
 over the network.
 
 ---
+## Credit 
+
+This project is funded by **MadaTech**, Israel's National Museum of Science, Technology and Space, and developed in collaboration with the **Technion** – Israel Institute of Technology.
+
+| Name  | Credit |
+|---|---|
+| Elad Siman Tov  | Project Management, Integration of Unitree SDK with Raspberry Pi |
+| Lior Ravina |  Integration of Gesture Recognition with Raspberry Pi |
+| Tal Nesher | Project Advisor |
+---
+
+---
 
 ## Repository structure
 
@@ -23,7 +35,7 @@ go2-gesture-control/
 │
 ├── sdk/                      # Go2 robot interface (unitree_sdk2py)
 │   ├── __init__.py
-│   └── go2_interface.py      # Go2Interface class
+│   └── go2_interface.py      # Go2Interface based on high_level_example.
 │
 ├── main.py                   # Entry point
 └── requirements.txt
@@ -44,62 +56,34 @@ go2-gesture-control/
 | 🤟 I Love You | I Love You |
 ---
 
-## Installation
+## Installation (Raspberry Pi)
 
-### 1. Python dependencies
+### Python dependencies
 
+Assume we install in the Raspberry Pi home directory, from scratch.
 ```bash
-pip install -r requirements.txt
+sudo apt install python3
+sudo apt install python3-pip
+python3 --version
+sudo apt install python3-venv
+cd ~
+git clone https://github.com/eladsimantov/go2-gesture-control
+cd ~/go2-gesture-control/
+python -m venv go2env
+source go2env/bin/activate
 ```
 
-### 2. Unitree SDK
-
-```bash
-git clone https://github.com/unitreerobotics/unitree_sdk2_python
-cd unitree_sdk2_python && pip install -e .
-```
+### Unitree SDK
+To install Unitree's python SDK follow the guides in - https://github.com/unitreerobotics/unitree_sdk2_python.
 
 ---
 
 ## Usage
-
-```bash
-# Default: webcam at index 0, robot reachable via eth0
-python main.py
-
-# Custom network interface and camera index
-python main.py --interface enp3s0 --camera 2
-```
-
-Press **q** in the preview window to quit.
+TODO
 
 ---
 
 ## Architecture
-
-```
-Camera frame
-     │
-     ▼
-┌──────────────────┐
-│  GestureDetector │  (gesture/)
-│  (MediaPipe Hands)│
-└────────┬─────────┘
-         │  Gesture
-         ▼
-┌──────────────────┐
-│  CommandRouter   │  (command_layer/)
-└────────┬─────────┘
-         │  Command
-         ▼
-┌──────────────────┐
-│  Go2Interface    │  (sdk/)
-│  (unitree_sdk2py)│
-└──────────────────┘
-         │
-         ▼
-    Go2 Robot
-```
 
 <img width="905" height="582" alt="image" src="https://github.com/user-attachments/assets/fc627fd4-72f6-42ba-93e0-e33e6a0555e7" />
 
