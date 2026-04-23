@@ -70,6 +70,7 @@ cd ~
 git clone https://github.com/eladsimantov/go2-gesture-control
 cd ~/go2-gesture-control/
 python -m venv go2env
+pip install -r requirements.txt
 source go2env/bin/activate
 ```
 
@@ -86,4 +87,20 @@ TODO
 ## Architecture
 
 <img width="905" height="582" alt="image" src="https://github.com/user-attachments/assets/fc627fd4-72f6-42ba-93e0-e33e6a0555e7" />
+
+## WiFi Setup
+1. Go to the **Unitree Go2 App**.
+2. Turn on Bluetooth and WiFi on your phone.
+3. Connect your phone to the designated WiFi network. 
+4. In the App, navigate to the WiFi mode and activate internet remote connection. If connection fails, use without internet. 
+5. Connect the Raspberry Pi to the same WiFi network. 
+6. In the App, navigate to Device > Data > Network Information, and write down the wlan0 IP address of the Go2 robot (e.g., 10.26.162.112)
+7. Enable CycloneDDS in bash via wifi:
+```bash 
+export CYCLONEDDS_URI='<CycloneDDS><Domain><General><Interfaces><NetworkInterface name="wlan0"/></Interfaces></General></Domain></CycloneDDS>'
+```
+
+<!-- 6. Finally, find the Go2's IP address using the app and update `GO2_IP` in `main.py` accordingly. -->
+
+
 
