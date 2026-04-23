@@ -13,7 +13,7 @@ those dependencies present (e.g. during unit testing).
 
 from .gestures import Gesture
 
-__all__ = ["Gesture", "GestureDetector", "CameraStream"]
+__all__ = ["Gesture", "GestureDetector", "CameraStream", "draw_overlays"]
 
 
 def __getattr__(name: str):  # noqa: N807
@@ -23,4 +23,7 @@ def __getattr__(name: str):  # noqa: N807
     if name == "CameraStream":
         from .camera import CameraStream
         return CameraStream
+    if name == "draw_overlays":
+        from .visualize import draw_overlays
+        return draw_overlays
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

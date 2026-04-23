@@ -15,26 +15,23 @@ class Gesture(Enum):
     UNKNOWN = auto()
     """No recognised gesture or ambiguous pose."""
 
-    THUMBS_UP = auto()
-    """Thumb pointing upward – all other fingers closed."""
-
-    THUMBS_DOWN = auto()
-    """Thumb pointing downward – all other fingers closed."""
-
-    OPEN_PALM = auto()
-    """All five fingers extended and spread open (stop / stay)."""
-
-    FIST = auto()
+    CLOSED_FIST = auto()
     """All fingers curled into a closed fist."""
 
-    PEACE = auto()
+    OPEN_PALM = auto()
+    """All five fingers extended and spread open."""
+
+    POINTING_UP = auto()
+    """Index finger extended and pointing upwards."""
+
+    THUMB_DOWN = auto()
+    """Thumb pointing downward – all other fingers closed."""
+
+    THUMB_UP = auto()
+    """Thumb pointing upward – all other fingers closed."""
+
+    VICTORY = auto()
     """Index and middle fingers extended in a V shape."""
 
-    POINTING_LEFT = auto()
-    """Index finger extended and pointing to the left."""
-
-    POINTING_RIGHT = auto()
-    """Index finger extended and pointing to the right."""
-
-    WAVE = auto()
-    """Open hand moving side-to-side (detected as sustained motion)."""
+    ILOVEYOU = auto()
+    """Thumb, index, and pinky extended."""

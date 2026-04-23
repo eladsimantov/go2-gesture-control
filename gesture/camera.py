@@ -99,20 +99,33 @@ class CameraStream:
         self.stop()
 
 if __name__ == "__main__":
+    import os
+    import sys
+    # Add project root to sys.path so we can import from the package
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    from gesture.gesture_detector import GestureDetector
+    from gesture.visualize import draw_overlays
+
     # Configure basic logging for standalone execution
     logging.basicConfig(level=logging.INFO)
     
-    print("Starting camera stream. Press 'q' to exit.")
+    print("Starting camera stream and gesture detector. Press 'q' to exit.")
     
-    with CameraStream(source=0) as camera:
+    with CameraStream(source=0) as camera, GestureDetector() as detector:
         while True:
             success, frame = camera.read_frame()
             if not success:
                 print("Failed to grab frame. Exiting...")
                 break
+                
+            # Detect gesture, landmarks, and confidences
+            gesture, landmarks, confidences = detector.detect(frame)
+            
+            # Draw overlays for visual feedback
+            frame = draw_overlays(frame, gesture, landmarks, confidences)
             
             # Display the resulting frame
-            cv2.imshow("Camera Feed Test", frame)
+            cv2.imshow("Gesture Control Test", frame)
             
             # Wait for 1 ms and check if 'q' is pressed
             if cv2.waitKey(1) & 0xFF == ord('q'):

@@ -83,7 +83,7 @@ def run(network_interface: str, camera_index: int) -> int:
                     logger.warning("Failed to read frame from camera")
                     continue
 
-                gesture = detector.detect(frame)
+                gesture, landmarks, confidences = detector.detect(frame)
                 command = router.route(gesture)
                 robot.send_command(command)
 
@@ -97,6 +97,14 @@ def run(network_interface: str, camera_index: int) -> int:
                     (0, 255, 0),
                     2,
                 )
+
+                if confidences:
+                    y_offset = 60
+                    for category_name, score in confidences:
+                        text = f"{category_name}: {score:.2f}"
+                        cv2.putText(frame, text, (10, y_offset), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1)
+                        y_offset += 20
+
                 cv2.imshow("Go2 Gesture Control", frame)
 
                 if cv2.waitKey(1) & 0xFF == ord("q"):

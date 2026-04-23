@@ -19,14 +19,13 @@ logger = logging.getLogger(__name__)
 
 # Default gesture → command mapping.
 _DEFAULT_MAPPING: Dict[Gesture, Command] = {
-    Gesture.THUMBS_UP: Command.STAND_UP,
-    Gesture.THUMBS_DOWN: Command.SIT_DOWN,
+    Gesture.THUMB_UP: Command.STAND_UP,
+    Gesture.THUMB_DOWN: Command.SIT_DOWN,
     Gesture.OPEN_PALM: Command.STOP,
-    Gesture.FIST: Command.WALK_FORWARD,
-    Gesture.PEACE: Command.WALK_BACKWARD,
-    Gesture.POINTING_LEFT: Command.TURN_LEFT,
-    Gesture.POINTING_RIGHT: Command.TURN_RIGHT,
-    Gesture.WAVE: Command.WAVE,
+    Gesture.CLOSED_FIST: Command.WALK_FORWARD,
+    Gesture.VICTORY: Command.WALK_BACKWARD,
+    Gesture.POINTING_UP: Command.TURN_LEFT,  # Maps up-pointing gesture to a rotate command
+    Gesture.ILOVEYOU: Command.WAVE,
     Gesture.UNKNOWN: Command.NONE,
 }
 
