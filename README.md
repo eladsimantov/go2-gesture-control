@@ -59,13 +59,14 @@ go2-gesture-control/
 ## Installation (Raspberry Pi)
 
 ### Python dependencies
-
 Assume we install in the Raspberry Pi home directory, from scratch.
 ```bash
+sudo apt update
 sudo apt install python3
 sudo apt install python3-pip
 python3 --version
 sudo apt install python3-venv
+sudo apt install git 
 cd ~
 git clone https://github.com/eladsimantov/go2-gesture-control
 cd ~/go2-gesture-control/
@@ -77,6 +78,39 @@ source go2env/bin/activate
 ### Unitree SDK
 To install Unitree's python SDK follow the guides in - https://github.com/unitreerobotics/unitree_sdk2_python.
 
+The SDK should be installed into the go2env virtual environment, using the editable install method.
+
+Install system dependencies:
+```bash
+sudo apt update
+sudo apt install git build-essential cmake libboost-all-dev
+```
+
+Install CycloneDDS inside the project directory:
+```bash
+git clone https://github.com/eclipse-cyclonedds/cyclonedds.git -b releases/0.10.x
+cd cyclonedds
+mkdir build install
+cd build
+cmake .. -DCMAKE_INSTALL_PREFIX=../install
+cmake --build . --target install
+```
+
+Make the SDK aware of CycloneDDS when activating the virtual environment:
+```bash
+echo 'export CYCLONEDDS_HOME="$(pwd)/cyclonedds/install"' >> go2env/bin/activate
+echo 'export LD_LIBRARY_PATH="$CYCLONEDDS_HOME/lib:$LD_LIBRARY_PATH"' >> go2env/bin/activate
+```
+
+Install the SDK in editable mode:
+```bash 
+cd ~/go2-gesture-control/
+source go2env/bin/activate
+git clone https://github.com/unitreerobotics/unitree_sdk2_python
+
+cd unitree_sdk2_python
+pip install -e .
+```
 ---
 
 ## Usage
