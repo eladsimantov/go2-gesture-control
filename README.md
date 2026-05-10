@@ -13,7 +13,7 @@ This project is funded by **MadaTech**, Israel's National Museum of Science, Tec
 | Name  | Credit |
 |---|---|
 | Elad Siman Tov  | Project Management, Integration of Unitree SDK with Raspberry Pi |
-| Lior Ravina |  Integration of Gesture Recognition with Raspberry Pi |
+| Leeor Ravina |  Integration of Gesture Recognition with Raspberry Pi |
 | Tal Nesher | Project Advisor |
 ---
 
