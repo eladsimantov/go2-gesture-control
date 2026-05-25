@@ -114,7 +114,27 @@ pip install -e .
 ---
 
 ## Usage
-TODO
+
+### 1. Dry Simulation (Testing without a robot)
+You can test the entire gesture pipeline at your desk. In this mode, the system will not attempt to connect to the physical robot. Instead, it uses a mock controller to print exactly what the robot *would* be doing to the console, including museum timeout behaviours.
+
+```bash
+cd ~/go2-gesture-control/
+source go2env/bin/activate
+python main.py
+```
+
+### 2. Physical Robot (Museum Exhibit Mode)
+When connected to the physical robot, use the `--real-robot` flag. This will initialize the Unitree SDK `SportClient` and send live DDS commands to the Go2 over the network.
+
+```bash
+cd ~/go2-gesture-control/
+source go2env/bin/activate
+python main.py --real-robot
+```
+
+### Optional Flags
+- `--camera <index>`: Select a specific camera index if you have multiple cameras (e.g. `--camera 2`). Default is `0`.
 
 ---
 
