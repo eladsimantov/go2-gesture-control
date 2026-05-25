@@ -3,20 +3,9 @@
 main.py – entry point for the Go2 gesture-control system.
 
 This script opens the default camera, detects hand gestures in real time,
-maps each gesture to a robot command and dispatches it to the Go2 robot
-over the configured network interface.
-
-Usage
------
-    python main.py [--interface <network-interface>] [--camera <device-index>]
-
-Examples
---------
-    # Use the default webcam and eth0 network interface
-    python main.py
-
-    # Use /dev/video2 and a specific network interface
-    python main.py --interface enp3s0 --camera 2
+maps each gesture to a robot command and dispatches it to the Go2 robot.
+Includes museum exhibit features: 5-second timeout to STAND_DOWN, and 
+10-second command cooldown.
 """
 
 from __future__ import annotations
@@ -24,12 +13,12 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
+import time
 
-import cv2
-
-from gesture import GestureDetector, Gesture
-from command_layer import CommandRouter
-from sdk import Go2Interface
+from gesture.camera import GesturePipeline
+from gesture.gestures import Gesture
+from command_layer.command_router import CommandRouter
+from command_layer.commands import Command
 
 logging.basicConfig(
     level=logging.INFO,
@@ -43,95 +32,75 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         description="Gesture-controlled Unitree Go2 robot demo"
     )
     parser.add_argument(
-        "--interface",
-        default="eth0",
-        help="Network interface connected to the Go2 robot (default: eth0)",
-    )
-    parser.add_argument(
         "--camera",
         type=int,
         default=0,
         help="Camera device index passed to cv2.VideoCapture (default: 0)",
     )
+    parser.add_argument(
+        "--real-robot",
+        action="store_true",
+        help="Connect to the real robot. Without this flag, it runs in dry simulation mode.",
+    )
     return parser.parse_args(argv)
 
 
-def run(network_interface: str, camera_index: int) -> int:
+def run(camera_index: int, real_robot: bool) -> int:
     """
     Main control loop.
-
-    Returns
-    -------
-    int
-        Exit code: 0 on clean exit, 1 on error.
     """
-    cap = cv2.VideoCapture(camera_index)
-    if not cap.isOpened():
-        logger.error("Cannot open camera (device index %d)", camera_index)
-        return 1
+    logger.info("Initializing CommandRouter...")
+    router = CommandRouter()
 
-    logger.info("Camera opened (device index %d)", camera_index)
+    if real_robot:
+        logger.info("Initializing REAL robot controller...")
+        from command_layer.go2_controller import Go2Controller
+        controller = Go2Controller()
+    else:
+        logger.info("Initializing MOCK robot controller (dry run)...")
+        from command_layer.mock_go2_controller import MockGo2Controller
+        controller = MockGo2Controller()
 
-    try:
-        with GestureDetector() as detector, Go2Interface(network_interface) as robot:
-            router = CommandRouter()
-            logger.info("Starting gesture control loop – press 'q' to quit")
+    pipeline = GesturePipeline(source=camera_index)
+    
+    # State tracking variables for museum requirements
+    state = {
+        "last_command_time": 0.0,
+        "last_gesture_time": time.time(),
+        "current_state": Command.NONE
+    }
 
-            prev_gesture = Gesture.UNKNOWN
+    COOLDOWN_PERIOD = 10.0
+    TIMEOUT_PERIOD = 5.0
 
-            while True:
-                ret, frame = cap.read()
-                if not ret:
-                    logger.warning("Failed to read frame from camera")
-                    continue
+    def on_gesture(gesture: Gesture):
+        now = time.time()
+        
+        if gesture != Gesture.UNKNOWN:
+            state["last_gesture_time"] = now
+            command = router.route(gesture)
+            
+            if command != Command.NONE and (now - state["last_command_time"]) >= COOLDOWN_PERIOD:
+                logger.info(f"Gesture {gesture.name} triggered command {command.name}")
+                controller.send_command(command)
+                state["last_command_time"] = now
+                state["current_state"] = command
+        else:
+            # Check for 5-second timeout to default state
+            if (now - state["last_gesture_time"]) >= TIMEOUT_PERIOD and state["current_state"] != Command.STAND_DOWN:
+                logger.info(f"No gesture for {TIMEOUT_PERIOD}s. Defaulting to STAND_DOWN.")
+                controller.send_command(Command.STAND_DOWN)
+                state["last_command_time"] = now
+                state["current_state"] = Command.STAND_DOWN
 
-                gesture, landmarks, confidences = detector.detect(frame)
-
-                if gesture != Gesture.UNKNOWN and gesture != prev_gesture:
-                    top_score = confidences[0][1] if confidences else 0.0
-                    print(f"recognised {gesture.name} with {top_score * 100:.2f}% confidence!")
-                    if confidences:
-                        conf_str = ", ".join([f"{cat}: {score * 100:.2f}%" for cat, score in confidences if cat != "None"])
-                        print(conf_str)
-                        
-                prev_gesture = gesture
-
-                command = router.route(gesture)
-                robot.send_command(command)
-
-                # Overlay the current gesture on the preview window
-                cv2.putText(
-                    frame,
-                    f"Gesture: {gesture.name}  Command: {command.name}",
-                    (10, 30),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    0.8,
-                    (0, 255, 0),
-                    2,
-                )
-
-                if confidences:
-                    y_offset = 60
-                    for category_name, score in confidences:
-                        text = f"{category_name}: {score:.2f}"
-                        cv2.putText(frame, text, (10, y_offset), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1)
-                        y_offset += 20
-
-                cv2.imshow("Go2 Gesture Control", frame)
-
-                if cv2.waitKey(1) & 0xFF == ord("q"):
-                    logger.info("Quit signal received")
-                    break
-    finally:
-        cap.release()
-        cv2.destroyAllWindows()
-
+    logger.info("Starting GesturePipeline...")
+    pipeline.run(on_gesture)
     return 0
 
 
 def main() -> None:
     args = parse_args()
-    sys.exit(run(args.interface, args.camera))
+    sys.exit(run(args.camera, args.real_robot))
 
 
 if __name__ == "__main__":

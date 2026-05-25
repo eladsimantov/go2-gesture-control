@@ -17,15 +17,14 @@ from .commands import Command
 
 logger = logging.getLogger(__name__)
 
-# Default gesture → command mapping.
 _DEFAULT_MAPPING: Dict[Gesture, Command] = {
     Gesture.THUMB_UP: Command.STAND_UP,
-    Gesture.THUMB_DOWN: Command.SIT_DOWN,
-    Gesture.OPEN_PALM: Command.STOP,
-    Gesture.CLOSED_FIST: Command.WALK_FORWARD,
-    Gesture.VICTORY: Command.WALK_BACKWARD,
-    Gesture.POINTING_UP: Command.TURN_LEFT,  # Maps up-pointing gesture to a rotate command
-    Gesture.ILOVEYOU: Command.WAVE,
+    Gesture.THUMB_DOWN: Command.STAND_DOWN,
+    Gesture.VICTORY: Command.HANDSTAND,
+    Gesture.POINTING_UP: Command.ROTATE,
+    Gesture.CLOSED_FIST: Command.SIT,
+    Gesture.OPEN_PALM: Command.HELLO,
+    Gesture.ILOVEYOU: Command.HEART,
     Gesture.UNKNOWN: Command.NONE,
 }
 

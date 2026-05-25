@@ -17,23 +17,20 @@ class Command(Enum):
     STAND_UP = auto()
     """Transition the robot from a resting pose to a standing pose."""
 
-    SIT_DOWN = auto()
-    """Lower the robot into a resting / sitting pose."""
+    STAND_DOWN = auto()
+    """Lower the robot into a resting / lying down pose."""
 
-    WALK_FORWARD = auto()
-    """Move the robot forward at a default walking speed."""
+    HANDSTAND = auto()
+    """Perform a handstand."""
 
-    WALK_BACKWARD = auto()
-    """Move the robot backward at a default walking speed."""
+    ROTATE = auto()
+    """Rotate the robot."""
 
-    TURN_LEFT = auto()
-    """Rotate the robot counter-clockwise (yaw left)."""
+    SIT = auto()
+    """Sit down."""
 
-    TURN_RIGHT = auto()
-    """Rotate the robot clockwise (yaw right)."""
-
-    STOP = auto()
-    """Immediately halt all motion and hold position."""
-
-    WAVE = auto()
+    HELLO = auto()
     """Trigger the robot's built-in wave / greeting action."""
+    
+    HEART = auto()
+    """Trigger the robot's heart / I Love You action."""

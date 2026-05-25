@@ -98,50 +98,64 @@ class CameraStream:
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         self.stop()
 
-if __name__ == "__main__":
-    import os
-    import sys
-    # Add project root to sys.path so we can import from the package
-    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    from gesture import GestureDetector, Gesture
-    from gesture.visualize import draw_overlays
+class GesturePipeline:
+    """
+    A pipeline that ties together the camera stream and gesture detector.
+    It runs an infinite loop processing frames and calls a callback function
+    with the detected gesture.
+    """
+    def __init__(self, source: Union[int, str] = 0, width: int = 640, height: int = 480):
+        self.source = source
+        self.width = width
+        self.height = height
 
-    # Configure basic logging for standalone execution
-    logging.basicConfig(level=logging.INFO)
-    
-    print("Starting camera stream and gesture detector. Press 'q' to exit.")
-    
-    with CameraStream(source=0) as camera, GestureDetector() as detector:
-        prev_gesture = Gesture.UNKNOWN
+    def run(self, on_gesture_callback: callable) -> None:
+        """
+        Run the camera pipeline.
         
-        while True:
-            success, frame = camera.read_frame()
-            if not success:
-                print("Failed to grab frame. Exiting...")
-                break
+        Parameters
+        ----------
+        on_gesture_callback : callable
+            A function that takes a `Gesture` enum as an argument. It is called
+            every frame.
+        """
+        from gesture import GestureDetector, Gesture
+        from gesture.visualize import draw_overlays
+        
+        logger.info("Starting GesturePipeline...")
+        with CameraStream(source=self.source, width=self.width, height=self.height) as camera, GestureDetector() as detector:
+            while True:
+                success, frame = camera.read_frame()
+                if not success:
+                    logger.warning("Failed to grab frame. Exiting pipeline...")
+                    break
+                    
+                gesture, landmarks, confidences = detector.detect(frame)
                 
-            # Detect gesture, landmarks, and confidences
-            gesture, landmarks, confidences = detector.detect(frame)
-            
-            if gesture != Gesture.UNKNOWN and gesture != prev_gesture:
-                top_score = confidences[0][1] if confidences else 0.0
-                print(f"recognised {gesture.name} with {top_score * 100:.2f}% confidence!")
-                if confidences:
-                    conf_str = ", ".join([f"{cat}: {score * 100:.2f}%" for cat, score in confidences if cat != "None"])
-                    print(conf_str)
-            
-            prev_gesture = gesture
+                # Call the callback every frame to allow time-based logic (timeouts, etc.)
+                on_gesture_callback(gesture)
+                
+                # Draw overlays for visual feedback
+                frame = draw_overlays(frame, gesture, landmarks, confidences)
+                
+                # Display the resulting frame
+                cv2.imshow("Gesture Control", frame)
+                
+                # Wait for 1 ms and check if 'q' is pressed
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    logger.info("Quit signal received.")
+                    break
+                    
+        cv2.destroyAllWindows()
+        cv2.waitKey(1)
 
-            # Draw overlays for visual feedback
-            frame = draw_overlays(frame, gesture, landmarks, confidences)
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    from gesture.gestures import Gesture
+    
+    def dummy_callback(gesture):
+        if gesture != Gesture.UNKNOWN:
+            print(f"Detected: {gesture.name}")
             
-            # Display the resulting frame
-            cv2.imshow("Gesture Control Test", frame)
-            
-            # Wait for 1 ms and check if 'q' is pressed
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                print("Quit signal received.")
-                break
-                
-    cv2.destroyAllWindows()
-    cv2.waitKey(1)  # Pump the event loop one last time to ensure window closes
+    pipeline = GesturePipeline(source=0)
+    pipeline.run(dummy_callback)
