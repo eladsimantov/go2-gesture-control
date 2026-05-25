@@ -67,7 +67,8 @@ def run(camera_index: int, real_robot: bool) -> int:
     state = {
         "last_command_time": 0.0,
         "last_gesture_time": time.time(),
-        "current_state": Command.NONE
+        "current_state": Command.NONE,
+        "is_ready": True
     }
 
     COOLDOWN_PERIOD = 10.0
@@ -76,22 +77,33 @@ def run(camera_index: int, real_robot: bool) -> int:
     def on_gesture(gesture: Gesture):
         now = time.time()
         
+        # Check if cooldown just finished and log it
+        if not state["is_ready"] and (now - state["last_command_time"]) >= COOLDOWN_PERIOD:
+            state["is_ready"] = True
+            if not real_robot:
+                print("\n[DRY SIMULATION] Robot finished command and is waiting for a new command...\n")
+
         if gesture != Gesture.UNKNOWN:
             state["last_gesture_time"] = now
             command = router.route(gesture)
             
-            if command != Command.NONE and (now - state["last_command_time"]) >= COOLDOWN_PERIOD:
+            if command != Command.NONE and state["is_ready"]:
                 logger.info(f"Gesture {gesture.name} triggered command {command.name}")
                 controller.send_command(command)
                 state["last_command_time"] = now
                 state["current_state"] = command
+                state["is_ready"] = False
         else:
             # Check for 5-second timeout to default state
             if (now - state["last_gesture_time"]) >= TIMEOUT_PERIOD and state["current_state"] != Command.STAND_DOWN:
                 logger.info(f"No gesture for {TIMEOUT_PERIOD}s. Defaulting to STAND_DOWN.")
                 controller.send_command(Command.STAND_DOWN)
-                state["last_command_time"] = now
+                # Reset cooldown immediately so it can receive the next command without waiting 10s
+                state["last_command_time"] = 0.0
                 state["current_state"] = Command.STAND_DOWN
+                state["is_ready"] = True
+                if not real_robot:
+                    print("\n[DRY SIMULATION] Robot defaulted to STAND_DOWN and is waiting for a new command...\n")
 
     logger.info("Starting GesturePipeline...")
     pipeline.run(on_gesture)
