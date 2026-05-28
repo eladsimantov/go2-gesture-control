@@ -38,7 +38,9 @@ go2-gesture-control/
 │   └── go2_interface.py      # Go2Interface based on high_level_example.
 │
 ├── main.py                   # Entry point
-└── requirements.txt
+├── requirements.txt          # Redirect file
+├── requirements-windows.txt  # Pinned dependencies for Windows
+└── requirements-pi.txt       # Platform-compatible dependencies for Raspberry Pi
 ```
 
 ---
@@ -71,8 +73,8 @@ cd ~
 git clone https://github.com/eladsimantov/go2-gesture-control
 cd ~/go2-gesture-control/
 python -m venv go2env
-pip install -r requirements.txt
 source go2env/bin/activate
+pip install -r requirements-pi.txt
 ```
 
 ### Unitree SDK
