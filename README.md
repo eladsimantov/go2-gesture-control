@@ -173,6 +173,8 @@ Or to connect directly to the robot's default Ethernet IP (`192.168.123.161`):
 ```bash
 export CYCLONEDDS_URI='<CycloneDDS><Domain><General><Interfaces><NetworkInterface name="eth0"/></Interfaces></General><Discovery><Peers><Peer Address="192.168.123.161"/></Peers><ParticipantIndex>auto</ParticipantIndex></Discovery></Domain></CycloneDDS>'
 ```
+Also, maybe add the settings
+
 
 To switch back or clear custom DDS routing:
 ```bash
@@ -183,3 +185,17 @@ unset CYCLONEDDS_URI
 
 
 
+# Bugs
+## ETHERNET NOT WORKING ON HIGH LEVEL EXAMPLE
+- If the RPIs wifi is on, you cannot connect via ETH cable easily. 
+- Run the commands to setup the connection:
+```bash
+sudo ifconfig wlan0 down
+sudo ip address add 192.168.123.10/24 dev eth0
+sudo ip link set eth0 up
+ping -c 4 192.168.123.161
+```
+- Make sure that all packets are recieved to see if the connection is good.
+- Run the high level example from the sdk to validate that everything is working.
+
+## 
