@@ -154,6 +154,11 @@ python main.py --real-robot
 export CYCLONEDDS_URI='<CycloneDDS><Domain><General><Interfaces><NetworkInterface name="wlan0"/></Interfaces></General></Domain></CycloneDDS>'
 ```
 
+Or to connect directly to the robot (replace with actual robot IP):
+```bash
+export CYCLONEDDS_URI='<CycloneDDS><Domain><General><Interfaces><NetworkInterface name="wlan0"/></Interfaces></General><Discovery><Peers><Peer Address="10.225.244.17"/></Peers><ParticipantIndex>auto</ParticipantIndex></Discovery></Domain></CycloneDDS>'
+```
+
 <!-- 6. Finally, find the Go2's IP address using the app and update `GO2_IP` in `main.py` accordingly. -->
 
 

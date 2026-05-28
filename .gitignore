@@ -5,6 +5,7 @@ __pycache__/
 
 # Virtual environments
 .venv/
+.go2env/
 venv/
 env/
 
@@ -17,3 +18,5 @@ build/
 .idea/
 .vscode/
 *.swp
+
+
