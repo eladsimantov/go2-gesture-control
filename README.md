@@ -198,4 +198,7 @@ ping -c 4 192.168.123.161
 - Make sure that all packets are recieved to see if the connection is good.
 - Run the high level example from the sdk to validate that everything is working.
 
-## 
+## Using a CYCLONEDDS file
+```bash
+export CYCLONEDDS_URI=file://$PWD/dds.xml
+```
