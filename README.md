@@ -161,6 +161,24 @@ Or to connect directly to the robot (replace with actual robot IP):
 export CYCLONEDDS_URI='<CycloneDDS><Domain><General><Interfaces><NetworkInterface name="wlan0"/></Interfaces></General><Discovery><Peers><Peer Address="10.225.244.17"/></Peers><ParticipantIndex>auto</ParticipantIndex></Discovery></Domain></CycloneDDS>'
 ```
 
+## Ethernet Setup
+If the Raspberry Pi is connected directly to the Go2 robot via an Ethernet cable (using the `eth0` interface):
+
+1. Configure the Raspberry Pi's ethernet adapter with a static IP address in the `192.168.123.X` subnet (e.g., `192.168.123.99` with netmask `255.255.255.0`).
+2. Enable CycloneDDS in bash via ethernet:
+```bash
+export CYCLONEDDS_URI='<CycloneDDS><Domain><General><Interfaces><NetworkInterface name="eth0"/></Interfaces></General></Domain></CycloneDDS>'
+```
+Or to connect directly to the robot's default Ethernet IP (`192.168.123.161`):
+```bash
+export CYCLONEDDS_URI='<CycloneDDS><Domain><General><Interfaces><NetworkInterface name="eth0"/></Interfaces></General><Discovery><Peers><Peer Address="192.168.123.161"/></Peers><ParticipantIndex>auto</ParticipantIndex></Discovery></Domain></CycloneDDS>'
+```
+
+To switch back or clear custom DDS routing:
+```bash
+unset CYCLONEDDS_URI
+```
+
 <!-- 6. Finally, find the Go2's IP address using the app and update `GO2_IP` in `main.py` accordingly. -->
 
 
