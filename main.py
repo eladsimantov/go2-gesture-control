@@ -26,14 +26,14 @@ logger = logging.getLogger(__name__)
 
 
 class RealRobotController:
-    def __init__(self):
+    def __init__(self, interface: str | None = None):
         try:
             from unitree_sdk2py.core.channel import ChannelFactoryInitialize
             from unitree_sdk2py.go2.sport.sport_client import SportClient
             
             logger.info("Initializing Unitree SDK Channels...")
-            if len(sys.argv) > 1:
-                ChannelFactoryInitialize(0, sys.argv[1])
+            if interface:
+                ChannelFactoryInitialize(0, interface)
             else:
                 ChannelFactoryInitialize(0)
                 
@@ -120,18 +120,22 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="Connect to the real robot. Without this flag, it runs in dry simulation mode.",
     )
-    # Remove custom arguments passed to unitree so we don't get errors with argparse if they passed sys.argv[1]
-    # Actually, we parse only known args so sys.argv[1] for network interface doesn't crash argparse
+    parser.add_argument(
+        "--interface",
+        type=str,
+        default=None,
+        help="Network interface to use for the robot connection (e.g. eth0).",
+    )
     return parser.parse_known_args(argv)[0]
 
 
-def run(camera_index: int, real_robot: bool, width: int, height: int, frame_skip: int, headless: bool) -> int:
+def run(camera_index: int, real_robot: bool, interface: str | None, width: int, height: int, frame_skip: int, headless: bool) -> int:
     """
     Main control loop.
     """
     if real_robot:
         logger.info("Initializing REAL robot controller...")
-        controller = RealRobotController()
+        controller = RealRobotController(interface=interface)
     else:
         logger.info("Initializing MOCK robot controller (dry run)...")
         controller = MockRobotController()
@@ -187,7 +191,7 @@ def run(camera_index: int, real_robot: bool, width: int, height: int, frame_skip
 def main() -> None:
     args = parse_args()
     try:
-        sys.exit(run(args.camera, args.real_robot, args.width, args.height, args.frame_skip, args.headless))
+        sys.exit(run(args.camera, args.real_robot, args.interface, args.width, args.height, args.frame_skip, args.headless))
     except KeyboardInterrupt:
         logger.info("Interrupted by user, shutting down.")
         sys.exit(0)
