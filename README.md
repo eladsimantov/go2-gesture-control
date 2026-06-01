@@ -202,3 +202,18 @@ ping -c 4 192.168.123.161
 ```bash
 export CYCLONEDDS_URI=file://$PWD/dds.xml
 ```
+
+
+## SSH into RPI
+1. Set ssh on the rpi under preferences > Raspberry Pi Configuration > Interfaces > TOGGLE ON.
+2. reboot the RPI. note the username and password.
+3. Connect the rpi to the network and assign a static IP address.
+4. SSH command in your command line
+```bash
+ssh username_pi@<IP_ADDRESS>
+```
+or even better if you know this already
+```bash
+ssh haim@Haimpi
+```
+and then type in "yes" and the password and you will be connected to the RPI!
