@@ -38,6 +38,18 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Camera device index passed to cv2.VideoCapture (default: 0)",
     )
     parser.add_argument(
+        "--width", type=int, default=320, help="Camera width resolution (default: 320)"
+    )
+    parser.add_argument(
+        "--height", type=int, default=240, help="Camera height resolution (default: 240)"
+    )
+    parser.add_argument(
+        "--frame-skip", type=int, default=2, help="Number of frames to skip before running detection (default: 2)"
+    )
+    parser.add_argument(
+        "--headless", action="store_true", help="Run without GUI / imshow (useful for Raspberry Pi)"
+    )
+    parser.add_argument(
         "--real-robot",
         action="store_true",
         help="Connect to the real robot. Without this flag, it runs in dry simulation mode.",
@@ -45,7 +57,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
-def run(camera_index: int, real_robot: bool) -> int:
+def run(camera_index: int, real_robot: bool, width: int, height: int, frame_skip: int, headless: bool) -> int:
     """
     Main control loop.
     """
@@ -61,7 +73,7 @@ def run(camera_index: int, real_robot: bool) -> int:
         from command_layer.mock_go2_controller import MockGo2Controller
         controller = MockGo2Controller()
 
-    pipeline = GesturePipeline(source=camera_index)
+    pipeline = GesturePipeline(source=camera_index, width=width, height=height, frame_skip=frame_skip, headless=headless)
     
     # State tracking variables for museum requirements
     state = {
@@ -112,7 +124,11 @@ def run(camera_index: int, real_robot: bool) -> int:
 
 def main() -> None:
     args = parse_args()
-    sys.exit(run(args.camera, args.real_robot))
+    try:
+        sys.exit(run(args.camera, args.real_robot, args.width, args.height, args.frame_skip, args.headless))
+    except KeyboardInterrupt:
+        logger.info("Interrupted by user, shutting down.")
+        sys.exit(0)
 
 
 if __name__ == "__main__":
