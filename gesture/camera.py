@@ -104,10 +104,12 @@ class GesturePipeline:
     It runs an infinite loop processing frames and calls a callback function
     with the detected gesture.
     """
-    def __init__(self, source: Union[int, str] = 0, width: int = 640, height: int = 480):
+    def __init__(self, source: Union[int, str] = 0, width: int = 640, height: int = 480, frame_skip: int = 0, headless: bool = False):
         self.source = source
         self.width = width
         self.height = height
+        self.frame_skip = frame_skip
+        self.headless = headless
 
     def run(self, on_gesture_callback: callable) -> None:
         """
@@ -124,30 +126,44 @@ class GesturePipeline:
         
         logger.info("Starting GesturePipeline...")
         with CameraStream(source=self.source, width=self.width, height=self.height) as camera, GestureDetector() as detector:
+            frame_count = 0
+            last_gesture = Gesture.UNKNOWN
+            
             while True:
                 success, frame = camera.read_frame()
                 if not success:
                     logger.warning("Failed to grab frame. Exiting pipeline...")
                     break
                     
-                gesture, landmarks, confidences = detector.detect(frame)
+                # Frame skipping logic
+                if frame_count % (self.frame_skip + 1) == 0:
+                    gesture, landmarks, confidences = detector.detect(frame)
+                    last_gesture = gesture
+                else:
+                    gesture = last_gesture
+                    landmarks, confidences = None, None
+                
+                frame_count += 1
                 
                 # Call the callback every frame to allow time-based logic (timeouts, etc.)
                 on_gesture_callback(gesture)
                 
-                # Draw overlays for visual feedback
-                frame = draw_overlays(frame, gesture, landmarks, confidences)
-                
-                # Display the resulting frame
-                cv2.imshow("Gesture Control", frame)
-                
-                # Wait for 1 ms and check if 'q' is pressed
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    logger.info("Quit signal received.")
-                    break
+                if not self.headless:
+                    # Draw overlays for visual feedback
+                    if landmarks is not None:
+                        frame = draw_overlays(frame, gesture, landmarks, confidences)
                     
-        cv2.destroyAllWindows()
-        cv2.waitKey(1)
+                    # Display the resulting frame
+                    cv2.imshow("Gesture Control", frame)
+                    
+                    # Wait for 1 ms and check if 'q' is pressed
+                    if cv2.waitKey(1) & 0xFF == ord('q'):
+                        logger.info("Quit signal received.")
+                        break
+                    
+        if not self.headless:
+            cv2.destroyAllWindows()
+            cv2.waitKey(1)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
