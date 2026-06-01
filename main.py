@@ -17,8 +17,6 @@ import time
 
 from gesture.camera import GesturePipeline
 from gesture.gestures import Gesture
-from command_layer.command_router import CommandRouter
-from command_layer.commands import Command
 
 logging.basicConfig(
     level=logging.INFO,
@@ -42,24 +40,41 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="Connect to the real robot. Without this flag, it runs in dry simulation mode.",
     )
+    parser.add_argument(
+        "--network",
+        type=str,
+        default="",
+        help="Network interface name to bind to (e.g., eth0). Optional.",
+    )
     return parser.parse_args(argv)
 
 
-def run(camera_index: int, real_robot: bool) -> int:
+def run(camera_index: int, real_robot: bool, network: str) -> int:
     """
     Main control loop.
     """
-    logger.info("Initializing CommandRouter...")
-    router = CommandRouter()
+    sport_client = None
 
     if real_robot:
-        logger.info("Initializing REAL robot controller...")
-        from command_layer.go2_controller import Go2Controller
-        controller = Go2Controller()
+        logger.info("Initializing REAL robot controller via unitree_sdk2py...")
+        try:
+            from unitree_sdk2py.core.channel import ChannelFactoryInitialize
+            from unitree_sdk2py.go2.sport.sport_client import SportClient
+            
+            if network:
+                ChannelFactoryInitialize(0, network)
+            else:
+                ChannelFactoryInitialize(0)
+                
+            sport_client = SportClient()
+            sport_client.SetTimeout(10.0)
+            sport_client.Init()
+            logger.info("Unitree SportClient initialized successfully.")
+        except ImportError as e:
+            logger.error(f"Failed to import unitree_sdk2py: {e}")
+            return 1
     else:
-        logger.info("Initializing MOCK robot controller (dry run)...")
-        from command_layer.mock_go2_controller import MockGo2Controller
-        controller = MockGo2Controller()
+        logger.info("Running in MOCK robot mode (dry run)...")
 
     pipeline = GesturePipeline(source=camera_index)
     
@@ -67,7 +82,7 @@ def run(camera_index: int, real_robot: bool) -> int:
     state = {
         "last_command_time": 0.0,
         "last_gesture_time": time.time(),
-        "current_state": Command.NONE,
+        "current_state": "NONE",
         "is_ready": True
     }
 
@@ -83,25 +98,53 @@ def run(camera_index: int, real_robot: bool) -> int:
             if not real_robot:
                 print("\n[DRY SIMULATION] Robot finished command and is waiting for a new command...\n")
 
+            # For commands that require toggling off after a period, such as HandStand
+            if real_robot and sport_client is not None and state["current_state"] == Gesture.VICTORY:
+                logger.info("Finishing HandStand")
+                sport_client.HandStand(False)
+
         if gesture != Gesture.UNKNOWN:
             state["last_gesture_time"] = now
-            command = router.route(gesture)
             
-            if command != Command.NONE and state["is_ready"]:
-                logger.info(f"Gesture {gesture.name} triggered command {command.name}")
-                controller.send_command(command)
+            if state["is_ready"]:
+                logger.info(f"Gesture {gesture.name} triggered.")
                 state["last_command_time"] = now
-                state["current_state"] = command
+                state["current_state"] = gesture
                 state["is_ready"] = False
+                
+                if real_robot and sport_client is not None:
+                    if gesture == Gesture.THUMB_UP:
+                        sport_client.StandUp()
+                    elif gesture == Gesture.THUMB_DOWN:
+                        sport_client.StandDown()
+                    elif gesture == Gesture.VICTORY:
+                        sport_client.HandStand(True)
+                        # We turn it off when cooldown is finished above, instead of blocking time.sleep()
+                    elif gesture == Gesture.POINTING_UP:
+                        sport_client.Move(0, 0, 0.5)
+                    elif gesture == Gesture.CLOSED_FIST:
+                        sport_client.Sit()
+                    elif gesture == Gesture.OPEN_PALM:
+                        sport_client.Hello()
+                    elif gesture == Gesture.ILOVEYOU:
+                        sport_client.Heart()
         else:
             # Check for 5-second timeout to default state
-            if (now - state["last_gesture_time"]) >= TIMEOUT_PERIOD and state["current_state"] != Command.STAND_DOWN:
+            if (now - state["last_gesture_time"]) >= TIMEOUT_PERIOD and state["current_state"] != "STAND_DOWN":
                 logger.info(f"No gesture for {TIMEOUT_PERIOD}s. Defaulting to STAND_DOWN.")
-                controller.send_command(Command.STAND_DOWN)
+                
+                if real_robot and sport_client is not None:
+                    # Turn off HandStand if it was active
+                    if state["current_state"] == Gesture.VICTORY:
+                        sport_client.HandStand(False)
+                        time.sleep(1)
+                    sport_client.StandDown()
+                    
                 # Reset cooldown immediately so it can receive the next command without waiting 10s
                 state["last_command_time"] = 0.0
-                state["current_state"] = Command.STAND_DOWN
+                state["current_state"] = "STAND_DOWN"
                 state["is_ready"] = True
+                
                 if not real_robot:
                     print("\n[DRY SIMULATION] Robot defaulted to STAND_DOWN and is waiting for a new command...\n")
 
@@ -112,7 +155,7 @@ def run(camera_index: int, real_robot: bool) -> int:
 
 def main() -> None:
     args = parse_args()
-    sys.exit(run(args.camera, args.real_robot))
+    sys.exit(run(args.camera, args.real_robot, getattr(args, 'network', "")))
 
 
 if __name__ == "__main__":
