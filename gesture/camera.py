@@ -128,6 +128,8 @@ class GesturePipeline:
         with CameraStream(source=self.source, width=self.width, height=self.height) as camera, GestureDetector() as detector:
             frame_count = 0
             last_gesture = Gesture.UNKNOWN
+            last_landmarks = None
+            last_confidences = None
             
             while True:
                 success, frame = camera.read_frame()
@@ -139,9 +141,12 @@ class GesturePipeline:
                 if frame_count % (self.frame_skip + 1) == 0:
                     gesture, landmarks, confidences = detector.detect(frame)
                     last_gesture = gesture
+                    last_landmarks = landmarks
+                    last_confidences = confidences
                 else:
                     gesture = last_gesture
-                    landmarks, confidences = None, None
+                    landmarks = last_landmarks
+                    confidences = last_confidences
                 
                 frame_count += 1
                 
@@ -150,8 +155,7 @@ class GesturePipeline:
                 
                 if not self.headless:
                     # Draw overlays for visual feedback
-                    if landmarks is not None:
-                        frame = draw_overlays(frame, gesture, landmarks, confidences)
+                    frame = draw_overlays(frame, gesture, landmarks, confidences)
                     
                     # Display the resulting frame
                     cv2.imshow("Gesture Control", frame)
