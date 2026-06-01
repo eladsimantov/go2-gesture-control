@@ -66,6 +66,9 @@ class RealRobotController:
     def stand_down(self) -> None:
         self.sport_client.StandDown()
 
+    def stand_up(self) -> None:
+        self.sport_client.StandUp()
+
 
 class MockRobotController:
     def __init__(self):
@@ -91,6 +94,9 @@ class MockRobotController:
 
     def stand_down(self) -> None:
         logger.info("MOCK: StandDown()")
+
+    def stand_up(self) -> None:
+        logger.info("MOCK: StandUp()")
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -150,8 +156,8 @@ def run(camera_index: int, real_robot: bool, interface: str | None, width: int, 
         "is_ready": True
     }
 
-    COOLDOWN_PERIOD = 10.0
-    TIMEOUT_PERIOD = 5.0
+    COOLDOWN_PERIOD = 3.0 # time to wait after a command before accepting a new one (reduced from 10s for better UX)
+    TIMEOUT_PERIOD = 3.0 # time to default to STAND_UP after last gesture
 
     def on_gesture(gesture: Gesture):
         now = time.time()
@@ -175,7 +181,7 @@ def run(camera_index: int, real_robot: bool, interface: str | None, width: int, 
             # Check for 5-second timeout to default state
             if (now - state["last_gesture_time"]) >= TIMEOUT_PERIOD and state["current_state"] != "STAND_DOWN":
                 logger.info(f"No gesture for {TIMEOUT_PERIOD}s. Defaulting to STAND_DOWN.")
-                controller.stand_down()
+                controller.stand_up()
                 # Reset cooldown immediately so it can receive the next command without waiting 10s
                 state["last_command_time"] = 0.0
                 state["current_state"] = "STAND_DOWN"
