@@ -110,10 +110,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Camera device index passed to cv2.VideoCapture (default: 0)",
     )
     parser.add_argument(
-        "--width", type=int, default=320, help="Camera width resolution (default: 320)"
+        "--width", type=int, default=640, help="Camera width resolution (default: 320)"
     )
     parser.add_argument(
-        "--height", type=int, default=240, help="Camera height resolution (default: 240)"
+        "--height", type=int, default=480, help="Camera height resolution (default: 240)"
     )
     parser.add_argument(
         "--frame-skip", type=int, default=2, help="Number of frames to skip before running detection (default: 2)"
