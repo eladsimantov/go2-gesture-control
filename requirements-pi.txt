@@ -9,3 +9,4 @@ opencv-python>=4.8.0
 
 # MediaPipe is required for real-time hand-gesture recognition.
 mediapipe>=0.10.0
+pyzmq>=25.0.0
