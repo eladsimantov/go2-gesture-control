@@ -106,12 +106,13 @@ class GesturePipeline:
     It runs an infinite loop processing frames and calls a callback function
     with the detected gesture.
     """
-    def __init__(self, source: Union[int, str] = 0, width: int = 640, height: int = 480, frame_skip: int = 2, headless: bool = False):
+    def __init__(self, source: Union[int, str] = 0, width: int = 640, height: int = 480, frame_skip: int = 2, headless: bool = False, fullscreen: bool = True):
         self.source = source
         self.width = width
         self.height = height
         self.frame_skip = frame_skip
         self.headless = headless
+        self.fullscreen = fullscreen
 
     def run(self, on_gesture_callback: callable) -> None:
         """
@@ -131,7 +132,8 @@ class GesturePipeline:
         if not self.headless:
             # Set up the window for fullscreen mode
             cv2.namedWindow("Gesture Control", cv2.WINDOW_NORMAL)
-            cv2.setWindowProperty("Gesture Control", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+            if self.fullscreen:
+                cv2.setWindowProperty("Gesture Control", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
         with CameraStream(source=self.source, width=self.width, height=self.height) as camera, GestureDetector() as detector:
             frame_count = 0

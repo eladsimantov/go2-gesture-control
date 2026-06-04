@@ -31,17 +31,18 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--height", type=int, default=480, help="Camera height")
     parser.add_argument("--frame-skip", type=int, default=2, help="Number of frames to skip")
     parser.add_argument("--headless", action="store_true", help="Run without GUI")
+    parser.add_argument("--no-fullscreen", action="store_true", help="Disable fullscreen GUI")
     parser.add_argument("--port", type=int, default=5555, help="ZeroMQ PUB port")
     return parser.parse_known_args(argv)[0]
 
-def run(camera_index: int, width: int, height: int, frame_skip: int, headless: bool, port: int) -> int:
+def run(camera_index: int, width: int, height: int, frame_skip: int, headless: bool, no_fullscreen: bool, port: int) -> int:
     context = zmq.Context()
     socket = context.socket(zmq.PUB)
     bind_addr = f"tcp://*:{port}"
     logger.info(f"Binding ZeroMQ PUB socket to {bind_addr}")
     socket.bind(bind_addr)
 
-    pipeline = GesturePipeline(source=camera_index, width=width, height=height, frame_skip=frame_skip, headless=headless)
+    pipeline = GesturePipeline(source=camera_index, width=width, height=height, frame_skip=frame_skip, headless=headless, fullscreen=not no_fullscreen)
     
     def on_gesture(gesture: Gesture):
         now = time.time()
@@ -64,7 +65,7 @@ def run(camera_index: int, width: int, height: int, frame_skip: int, headless: b
 def main() -> None:
     args = parse_args()
     try:
-        sys.exit(run(args.camera, args.width, args.height, args.frame_skip, args.headless, args.port))
+        sys.exit(run(args.camera, args.width, args.height, args.frame_skip, args.headless, args.no_fullscreen, args.port))
     except KeyboardInterrupt:
         logger.info("Interrupted by user, shutting down.")
         sys.exit(0)
